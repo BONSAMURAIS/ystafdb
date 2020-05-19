@@ -35,6 +35,9 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# pip lock
+Pipfile.lock
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -102,3 +105,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# base data csv files
+*.csv
+
+# Output folder
+output
+
+# Pycharm
+*.idea
+

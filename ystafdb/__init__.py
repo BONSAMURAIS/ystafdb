@@ -2,7 +2,7 @@ __all__ = (
     "generate_foaf_uris",
     "generate_ystafdb_metadata_uris"
 )
-VERSION = (0, 1)
+VERSION = (0, 3)
 __version__ = ".".join(str(v) for v in VERSION)
 
 data_dir = "data"

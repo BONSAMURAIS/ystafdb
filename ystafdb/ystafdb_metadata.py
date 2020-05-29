@@ -301,17 +301,19 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         activityCounter += 1
 
         # Balanceable Property
-        balance = URIRef("{}#B_{}".format(ystafdb_flow_uri, balance_counter))
-        g.add((balance, RDF.type, URIRef(bont.BalanceableProperty)))
-        g.add((balance, bont.hasBalanceablePropertyType, om2.DryMass))
-        g.add((balance, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
-        g.add((balance, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))
-        g.add((
-            balance,
-            RDFS.label,
-            Literal("{};{} {}".format(mat_name, quantity, unit_dict[quantity_unit_id]), datatype=XSD.string)
-        ))
-        balance_counter += 1
+        # We omit becquerel
+        if quantity_unit_id != 17:
+            balance = URIRef("{}#B_{}".format(ystafdb_flow_uri, balance_counter))
+            g.add((balance, RDF.type, URIRef(bont.BalanceableProperty)))
+            g.add((balance, bont.hasBalanceablePropertyType, om2.DryMass))
+            g.add((balance, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
+            g.add((balance, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))
+            g.add((
+                balance,
+                RDFS.label,
+                Literal("{};{} {}".format(ref_mat_name, quantity, unit_dict[quantity_unit_id]), datatype=XSD.string)
+            ))
+            balance_counter += 1
 
         # Here we create the Flow
         flow = URIRef("{}#F_{}".format(ystafdb_flow_uri, flowCounter))

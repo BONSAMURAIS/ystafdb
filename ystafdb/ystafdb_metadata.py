@@ -4,29 +4,30 @@ from .graph_common import add_common_elements, generate_generic_graph
 from .provenance_uris import get_empty_prov_graph, add_prov_meta_information
 from .graph_common import NS
 from pathlib import Path
-from rdflib import Graph, Literal, RDF, URIRef, XSD, OWL
+from rdflib import Graph, Literal, RDF, URIRef, XSD
 from rdflib.namespace import RDFS, DC
 from rdflib import Namespace
 import codecs
 import csv
 import re
 import pkg_resources
-import itertools
 import pandas
-import math
 import os
 
 
 def generate_ystafdb_metadata_uris(output_base_dir):
     output_base_dir = Path(output_base_dir)
 
+    # ----------------- Provenance -------------------------
+
+    # Start Provenance Graph and add info on providers
     # Get Empty Provenance Graph
     prov_graph = get_empty_prov_graph()
     prov_graph = add_prov_meta_information(prov_graph)
 
     # Index of Super Dataset
     ystafdb_id = 0
-    dataset_counter = ystafdb_id + 1
+    dataset_counter = 0
 
     # publication Data
     file_path = os.path.join(data_dir, "publications.csv")
@@ -68,47 +69,7 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     for dataset in dataset_list:
         prov_graph.add((super_dataset, prov.hadMember, dataset))
 
-    # Activity Types
-    file_path = os.path.join(data_dir, "aggregate_subsystem_modules.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
-    processes_df = pandas.read_csv(
-        file_handler,
-        header=0,
-    )
-
-    activity_data = [[processes_df["aggregate_subsystem_module"][x].strip(), "A_{}".format(processes_df['aggregate_subsystem_module_id'][x])] for x in range(1, len(processes_df))]
-    generate_generic_graph(
-        output_base_dir,
-        kind="ActivityType",
-        data=sorted(activity_data),
-        directory_structure=["ystafdb"],
-        title="Yale Stocks and Flows Database Activity Types",
-        description="ActivityType instances needed for BONSAI modelling of YSTAFDB version 1.0",
-        author="BONSAI team",
-        provider="Yale University",
-        dataset="YSTAFDB"
-    )
-
-    # Flow Objects
-    file_path = os.path.join(data_dir, "material_names.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
-    materials = pandas.read_csv(
-        file_handler,
-        header=0,
-    )
-
-    materials_data = [[materials["material_name"][x].strip(), "C_{}".format(materials['material_name_id'][x])] for x in range(0, len(materials)) if type(materials["material_name"][x]) != float]
-    generate_generic_graph(
-        output_base_dir,
-        kind="FlowObject",
-        data=materials_data,
-        directory_structure=["ystafdb"],
-        title="Yale Stocks and Flows Database Flow Objects",
-        description="FlowObject instances needed for BONSAI modelling of YSTAFDB version 1.0",
-        author="BONSAI team",
-        provider="Yale University",
-        dataset="YSTAFDB"
-    )
+    # ------------------------- Locations -----------------------------------
 
     # Locations
     file_path = os.path.join(data_dir, "reference_spaces.csv")
@@ -133,7 +94,6 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     g.bind("schema", "http://schema.org/")
 
     for i, label in enumerate(locations['reference_space'], 1):
-
         node = URIRef("{}#L_{}".format(ystafdb_location_uri, i))
 
         g.add((node, RDF.type, URIRef("http://schema.org/Place")))
@@ -142,7 +102,77 @@ def generate_ystafdb_metadata_uris(output_base_dir):
 
     write_graph(output_base_dir / "location" / "ystafdb", g)
 
-    # Times
+    # -------------------------- Activity Types ---------------------------------
+
+    # Activity Types
+    # Aggregate Subsystems
+    file_path = os.path.join(data_dir, "aggregate_subsystem_modules.csv")
+    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    agg_subsystems = pandas.read_csv(
+        file_handler,
+        header=0,
+    )
+
+    # Subsystems
+    file_path = os.path.join(data_dir, "subsystems.csv")
+    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    subsystems = pandas.read_csv(
+        file_handler,
+        header=0,
+    )
+
+    # Create all combinations of agg_subsystems and subsystems,
+    # These are the Activity Types
+    process_combinations = []
+    for agg_id in agg_subsystems['aggregate_subsystem_module_id']:
+        for sub_id in subsystems['subsystem_id']:
+            process_combinations.append((agg_id, sub_id))
+
+    # Create dictionaries for future usage
+    activity_keep_set = set()
+    agg_sub_dict = {i: x for i, x in zip(agg_subsystems["aggregate_subsystem_module_id"], agg_subsystems["aggregate_subsystem_module"])}
+    sub_dict = {i: x for i, x in zip(subsystems["subsystem_id"], subsystems["subsystem"])}
+    process_combinations = list(set(process_combinations))
+    activity_type_dict_index = {"{}_{}".format(agg_sub, sub): index for index, (agg_sub, sub) in enumerate(process_combinations)}
+
+    # ----------------------------- Flow Objects ----------------------------------
+
+    # These are a combination of Reference_material and material_name, therefor
+    # They can only be create when extracting flows, to omit instantiating combinations
+    # Which makes no sense
+    file_path = os.path.join(data_dir, "reference_materials.csv")
+    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    reference_materials = pandas.read_csv(
+        file_handler,
+        header=0,
+    )
+
+    # Material Names
+    file_path = os.path.join(data_dir, "material_names.csv")
+    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    materials = pandas.read_csv(
+        file_handler,
+        header=0,
+    )
+
+    # Create dictionaries for future usage
+    reference_materials_dict = {i: x for i, x in zip(reference_materials["reference_material_id"], reference_materials["reference_material"])}
+    materials_dict = {i: x for i, x in zip(materials["material_name_id"], materials["material_name"])}
+    flow_object_dict = {}
+
+    # ----------------------------- Units -------------------------------------
+
+    # Dictionary to hold unit conversions
+    unit_dict = {
+        3: "megagram",
+        4: "gigagram",
+        5: "teragram",
+        17: "gigabecquerel"
+    }
+
+    # ---------------------------- Reference Times ---------------------------------------
+
+    # Extract reference times for later usage
     file_path = os.path.join(data_dir, "reference_timeframes.csv")
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     times = pandas.read_csv(
@@ -150,133 +180,11 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         header=0,
     )
 
-    ystafdb_times_uri = "http://rdf.bonsai.uno/time/ystafdb"
-    g = add_common_elements(
-        graph=Graph(),
-        base_uri=ystafdb_times_uri,
-        title="Custom time for YSTAFDB",
-        description="Times groupings used by YSTAFDB",
-        author="Emil Riis Hansen",
-        provider="Yale University",
-        dataset="YSTAFDB"
-    )
+    times_dict = {i: x for i, x in zip(times["reference_timeframe_id"], times["reference_timeframe"])}
 
-    BRDFTIME = Namespace("http://rdf.bonsai.uno/time/ystafdb#")
-    OT = Namespace("https://www.w3.org/TR/owl-time/")
-    g.bind("ot", "https://www.w3.org/TR/owl-time/")
-    g.bind("brdftime", BRDFTIME)
-    g.bind("schema", "http://schema.org/")
+    # ----------------------------- Flows ----------------------------------
 
-    g.add((URIRef(BRDFTIME.oneyearlong), RDF.type, OT.DurationDescription))
-    g.add((URIRef(BRDFTIME.oneyearlong), OT.years, Literal(1, datatype=XSD.integer)))
-
-    for i, label in zip(times['reference_timeframe_id'], times['reference_timeframe']):
-        # TODO: Some labels are timeperiods longer than one year
-        # Add node for start time of year
-        if '-' in label:
-            labels = label.strip().split('-')
-        else:
-            labels = [label, label]
-        nodeStart = URIRef("{}T_{}_start".format(BRDFTIME, i))
-        g.add((nodeStart, RDF.type, OT.Instant))
-        g.add((nodeStart, OT.inXSDDate, Literal("{}-01-01".format(labels[0]), datatype=XSD.date)))
-
-        # Add node for end time of year
-        nodeEnd = URIRef("{}T_{}_end".format(BRDFTIME, i))
-        g.add((nodeEnd, RDF.type, OT.Instant))
-        g.add((nodeEnd, OT.inXSDDate, Literal("{}-12-31".format(labels[1]))))
-
-        # Add real time node
-        node = URIRef("{}T_{}".format(BRDFTIME, i))
-        g.add((node, RDF.type, OT.ProperInterval))
-        g.add((node, RDFS.label, Literal(label, datatype=XSD.string)))
-        g.add((node, OT.hasBeginning, nodeStart))
-        g.add((node, OT.hasEnd, nodeEnd))
-        #g.add((node, OT.inXSDDate, Literal("{}-01-01".format(label), datatype=XSD.date)))
-
-        # Add Provenance
-        g.add((URIRef(ystafdb_times_uri), NS.prov.hadMember, nodeStart))
-        g.add((URIRef(ystafdb_times_uri), NS.prov.hadMember, nodeEnd))
-        g.add((URIRef(ystafdb_times_uri), NS.prov.hadMember, node))
-
-    write_graph(output_base_dir / "time" / "ystafdb", g)
-
-
-    # Unit Data
-    file_path = os.path.join(data_dir, "units.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
-    units = pandas.read_csv(
-        file_handler,
-        header=0,
-    )
-
-    ystafdb_units_uri = "http://rdf.bonsai.uno/unit/ystafdb"
-    g = add_common_elements(
-        graph=Graph(),
-        base_uri=ystafdb_units_uri,
-        title="Custom units for YSTAFDB",
-        description="Units used by YSTAFDB",
-        author="Emil Riis Hansen",
-        provider="Yale University",
-        dataset="YSTAFDB"
-    )
-
-    BUNIT = Namespace("http://rdf.bonsai.uno/unit/ystafdb#")
-    OM2 = Namespace("http://www.ontology-of-units-of-measure.org/resource/om-2/")
-
-    g.bind("om2", OM2)
-    g.bind("bunit", BUNIT)
-    g.bind("schema", "http://schema.org/")
-
-    # This is the conversion table between the ystafdb units and and the ontology-of-units-of-measure
-    unitToOM2 = {
-        "g": "PrefixedGram",
-        "kg": "kilogram",
-        "Mg": "megagram",
-        "Gg": "gigagram",
-        "Tg": "teragram",
-        "Pg": "petagram",
-        "mol": "PrefixedMole",
-        "kmol": "kilomole",
-        "Mmol": "megamole",
-        "Gmol": "gigamole",
-        "Tmol": "teramole",
-        "Pmol": "petamole",
-        "%": "percent",
-        "Bq": "becquerel",
-        "kBq": "kilobecquerel",
-        "MBq": "megabecquerel",
-        "GBq": "gigabecquerel",
-        "TBq": "terabecquerel",
-        "PBq": "petabecquerel",
-        "none": {
-            "mass fraction": "MassFraction",
-            # TODO Check whether this is actually true...
-            "mol fraction": "AmountOfSubstanceConcentration",
-            "volume fraction": "VolumeFraction"
-        },
-        "Eg": "exagram"
-    }
-
-    for unit_id, unit, label in zip(units['unit_id'], units['unit'], units['unit_name']):
-        om2Unit = unitToOM2[unit]
-        if unit == "none":
-            om2Unit = om2Unit[label]
-
-        # Add node for start time of year
-        node = URIRef("{}U_{}".format(BUNIT, unit_id))
-
-        # TODO: Not sure whether all units should be OM2 PrefixedUnit types?
-        g.add((node, RDF.type, OM2.PrefixedUnit))
-        g.add((node, RDFS.label, Literal("{}".format(label), datatype=XSD.string)))
-        g.add((node, OWL.sameAs, OM2[om2Unit]))
-
-        # Add Provenance
-        g.add((URIRef(ystafdb_units_uri), NS.prov.hadMember, node))
-
-    write_graph(output_base_dir / "unit" / "ystafdb", g)
-
-    # Flows
+    "Extract all flow from the file, for each flow find which data is needed from other files"
     file_path = os.path.join(data_dir, "flows.csv")
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     utf8_reader = codecs.getreader("utf-8")
@@ -294,7 +202,7 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         data_rows.append(dict1)
     print("Done Extracting flows from YSTAFDB")
 
-    # Create graph with common elements
+    # Create graph for flows with common elements
     ystafdb_flow_uri = "http://rdf.bonsai.uno/data/ystafdb/huse"
     g = add_common_elements(
         graph=Graph(),
@@ -308,63 +216,110 @@ def generate_ystafdb_metadata_uris(output_base_dir):
 
     prov = Namespace("http://www.w3.org/ns/prov/ystafdb#")
     bont = Namespace("http://ontology.bonsai.uno/core#")
-    data = Namespace("http://rdf.bonsai.uno/data/ystafdb/huse#")
-    flow = Namespace("http://rdf.bonsai.uno/data/ystafdb/huse#")
     brdffo = Namespace("http://rdf.bonsai.uno/flowobject/ystafdb#")
     om2 = Namespace("http://www.ontology-of-units-of-measure.org/resource/om-2/")
-    bunit = Namespace("http://rdf.bonsai.uno/unit/ystafdb#")
-    btime = Namespace("http://rdf.bonsai.uno/time/ystafdb#")
     brdfat = Namespace("http://rdf.bonsai.uno/activitytype/ystafdb#")
+    brdftime = Namespace("http://rdf.bonsai.uno/time#")
     bloc = Namespace("http://rdf.bonsai.uno/location/ystafdb#")
 
     g.bind("bont", "http://ontology.bonsai.uno/core#")
     g.bind("flow", "http://rdf.bonsai.uno/data/ystafdb/huse#")
     g.bind("schema", "http://schema.org/")
     g.bind("brdffo", "http://rdf.bonsai.uno/flowobject/ystafdb#")
-    g.bind("bunit", "http://rdf.bonsai.uno/unit/ystafdb#")
     g.bind("om2", "http://www.ontology-of-units-of-measure.org/resource/om-2/")
-    g.bind("btime", "http://rdf.bonsai.uno/time/ystafdb#")
+    g.bind("brdftime", "http://rdf.bonsai.uno/time#")
     g.bind("brdfat", "http://rdf.bonsai.uno/activitytype/ystafdb#")
     g.bind("bloc", "http://rdf.bonsai.uno/location/ystafdb#")
 
     flowCounter, activityCounter = 0, 0
     flows = pandas.DataFrame(data_rows, columns=header)
+    flow_object_counter = 0
+    balance_counter = 0
+    error_counter = 0
     for x in range(0, len(flows)):
+        reference_material_id = int(flows['reference_material_id'][x])
         reference_timeframe_id = int(flows['reference_timeframe_id'][x])
         reference_space_id = int(flows['reference_space_id'][x])
-        subsystem_id_origin = int(flows['aggregate_subsystem_module_id_origin'][x])
-        subsystem_id_destination = int(flows['aggregate_subsystem_module_id_destination'][x])
+        subsystem_id_origin = int(flows['subsystem_id_origin'][x])
+        aggregate_subsystem_module_id_origin = int(flows['aggregate_subsystem_module_id_origin'][x])
+        subsystem_id_destination = int(flows['subsystem_id_destination'][x])
+        aggregate_subsystem_module_id_destination = int(flows['aggregate_subsystem_module_id_destination'][x])
         material_name_id = int(flows['material_name_id'][x])
         quantity_unit_id = int(flows['quantity_unit_id'][x])
         publication_id = flows['publication_id'][x]
 
         # TODO: Sometimes quantity is Null, What to do in this case?
         if flows['quantity'][x] == "NULL":
+            error_counter += 1
             continue
         else:
             quantity = float(flows['quantity'][x])
 
+        # Combine reference_material and material_name
+        ref_mat_name = reference_materials_dict[reference_material_id]
+        mat_name = materials_dict[material_name_id]
+        flow_object_name = "{};{}".format(mat_name, ref_mat_name)
+        if flow_object_name not in flow_object_dict:
+            flow_object_dict[flow_object_name] = flow_object_counter
+            flow_object_counter += 1
+
+        activity_type_index_orig = "{}_{}".format(aggregate_subsystem_module_id_origin, subsystem_id_origin)
+        activity_type_index_dest = "{}_{}".format(aggregate_subsystem_module_id_destination, subsystem_id_destination)
+        if activity_type_index_orig not in activity_type_dict_index or activity_type_index_dest not in activity_type_dict_index:
+            error_counter += 1
+            continue
+
         # Here we create the two activities linking the flow
         activity_input = URIRef("{}#A_{}".format(ystafdb_flow_uri, activityCounter))
         g.add((activity_input, RDF.type, URIRef(bont.Activity)))
-        g.add((activity_input, bont.activityType, URIRef("{}A_{}".format(brdfat, subsystem_id_origin))))
-        g.add((activity_input, bont.hasTemporalExtent, URIRef("{}T_{}".format(btime, reference_timeframe_id))))
+        g.add((
+            activity_input,
+            bont.activityType,
+            URIRef("{}A_{}".format(brdfat, activity_type_dict_index[activity_type_index_orig]))
+        ))
+        g.add((
+            activity_input,
+            bont.hasTemporalExtent,
+            URIRef(brdftime[times_dict[reference_timeframe_id].replace("-", "_")])
+        ))
         g.add((activity_input, bont.location, URIRef("{}L_{}".format(bloc, reference_space_id))))
         activityCounter += 1
 
         activity_output = URIRef("{}#A_{}".format(ystafdb_flow_uri, activityCounter))
         g.add((activity_output, RDF.type, URIRef(bont.Activity)))
-        g.add((activity_output, bont.activityType, URIRef("{}A_{}".format(brdfat, subsystem_id_destination))))
-        g.add((activity_output, bont.hasTemporalExtent, URIRef("{}T_{}".format(btime, reference_timeframe_id))))
+        g.add((
+            activity_output,
+            bont.activityType,
+            URIRef("{}A_{}".format(brdfat, activity_type_dict_index[activity_type_index_dest]))
+        ))
+        g.add((
+            activity_output,
+            bont.hasTemporalExtent,
+            URIRef(brdftime[times_dict[reference_timeframe_id].replace("-", "_")])
+        ))
         g.add((activity_output, bont.location, URIRef("{}L_{}".format(bloc, reference_space_id))))
         activityCounter += 1
 
-        # Here we create the flow
+        # Balanceable Property
+        balance = URIRef("{}#B_{}".format(ystafdb_flow_uri, balance_counter))
+        g.add((balance, RDF.type, URIRef(bont.BalanceableProperty)))
+        g.add((balance, bont.hasBalanceablePropertyType, om2.DryMass))
+        g.add((balance, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
+        g.add((balance, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))
+        g.add((
+            balance,
+            RDFS.label,
+            Literal("{};{} {}".format(mat_name, quantity, unit_dict[quantity_unit_id]), datatype=XSD.string)
+        ))
+        balance_counter += 1
+
+        # Here we create the Flow
         flow = URIRef("{}#F_{}".format(ystafdb_flow_uri, flowCounter))
         g.add((flow, RDF.type, URIRef(bont.Flow)))
-        g.add((flow, bont.objectType, URIRef("{}C_{}".format(brdffo, material_name_id))))
-        g.add((flow, om2.hasUnit, URIRef("{}U_{}".format(bunit, quantity_unit_id))))
-        g.add((flow, om2.hasNumericValue, Literal(quantity, datatype=XSD.float)))
+        g.add((flow, bont.objectType, URIRef("{}C_{}".format(brdffo, flow_object_dict[flow_object_name]))))
+        g.add((flow, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))
+        g.add((flow, bont.hasBalanceableProperty, balance))
+        g.add((flow, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
         g.add((flow, bont.inputOf, activity_input))
         g.add((flow, bont.outputOf, activity_output))
         flowCounter += 1
@@ -373,12 +328,44 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         g.add((URIRef(ystafdb_flow_uri), NS.prov.hadMember, flow))
         g.add((URIRef(ystafdb_flow_uri), NS.prov.hadMember, activity_input))
         g.add((URIRef(ystafdb_flow_uri), NS.prov.hadMember, activity_output))
+        g.add((URIRef(ystafdb_flow_uri), NS.prov.hadMember, balance))
         prov_uri = URIRef(bprov['dataset_{}'.format(publication_id)])
         prov_graph.add((prov_uri, prov.hadMember, flow))
 
         if x % 1000 == 0:
             print("Extracted {} flows and {} activities".format(x, x * 2))
 
-    # Write graph to file
+    # Write Flows and Provenance graphs to file
+    print("Extracted {} flows successfully".format(x))
+    print("Encountered {} flows, which could not be extracted".format(error_counter))
     write_graph(output_base_dir / "prov" / "ystafdb", prov_graph)
     write_graph(output_base_dir / "flow" / "ystafdb/huse", g)
+
+    # Write Flow Objects graph to file
+    flow_object_list = [[x, "C_{}".format(y)] for x, y in zip(flow_object_dict.keys(), flow_object_dict.values())]
+    generate_generic_graph(
+        output_base_dir,
+        kind="FlowObject",
+        data=flow_object_list,
+        directory_structure=["ystafdb"],
+        title="Yale Stocks and Flows Database Flow Objects",
+        description="FlowObject instances needed for BONSAI modelling of YSTAFDB version 1.0",
+        author="BONSAI team",
+        provider="Yale University",
+        dataset="YSTAFDB"
+    )
+
+    # Write Activity Types graph to file
+    activity_type_dict_names = {i: "{};{}".format(agg_sub_dict[agg_sub], sub_dict[sub]) for i, (agg_sub, sub) in enumerate(process_combinations)}
+    activity_type_list = [[y, "A_{}".format(x)] for x, y in zip(activity_type_dict_names.keys(), activity_type_dict_names.values())]
+    generate_generic_graph(
+        output_base_dir,
+        kind="ActivityType",
+        data=sorted(activity_type_list),
+        directory_structure=["ystafdb"],
+        title="Yale Stocks and Flows Database Activity Types",
+        description="ActivityType instances needed for BONSAI modelling of YSTAFDB version 1.0",
+        author="BONSAI team",
+        provider="Yale University",
+        dataset="YSTAFDB"
+    )

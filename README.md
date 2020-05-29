@@ -33,12 +33,12 @@ Extract the zip file and move relevant files to the ystafdb/data folder.
 Currently the following files should be moved to the data folder:
 
 - `material_names.csv`
-- `aggregate_subsystem_modules.csv`
+- `subsystems.csv`
 - `flows.csv`
 - `publications.csv`
 - `reference_spaces.csv`
+- `reference_materials.csv`
 - `reference_timeframes.csv`
-- `units.csv`
 
 All other files can be disregarded.
 
@@ -64,23 +64,17 @@ output
 ├── flowobject
 │   └── ystafdb
 │       └── ystafdb.ttl
-├── foaf
-│   └── ystafdb
-│       └── ystafdb.ttl
 ├── location
 │   └── ystafdb
 │       └── ystafdb.ttl
-├── time
+├── foaf
 │   └── ystafdb
-│       └── ystafdb.ttl
-|── unit
-|   └── ystafdb
-│       └── ystafdb.ttl
+│       └── ystafdb.ttl
 └── prov
 |   └── ystafdb
 |       └── ystafdb.ttl
 └── flow
-    └── ystafdb
+    └── ystafdb
         └── huse
             └── huse.ttl
 

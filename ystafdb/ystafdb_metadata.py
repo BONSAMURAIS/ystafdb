@@ -274,7 +274,7 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         g.add((activity_input, RDF.type, URIRef(bont.Activity)))
         g.add((
             activity_input,
-            bont.activityType,
+            bont.hasActivityType,
             URIRef("{}A_{}".format(brdfat, activity_type_dict_index[activity_type_index_orig]))
         ))
         g.add((
@@ -282,14 +282,14 @@ def generate_ystafdb_metadata_uris(output_base_dir):
             bont.hasTemporalExtent,
             URIRef(brdftime[times_dict[reference_timeframe_id].replace("-", "_")])
         ))
-        g.add((activity_input, bont.location, URIRef("{}L_{}".format(bloc, reference_space_id))))
+        g.add((activity_input, bont.hasLocation, URIRef("{}L_{}".format(bloc, reference_space_id))))
         activityCounter += 1
 
         activity_output = URIRef("{}#A_{}".format(ystafdb_flow_uri, activityCounter))
         g.add((activity_output, RDF.type, URIRef(bont.Activity)))
         g.add((
             activity_output,
-            bont.activityType,
+            bont.hasActivityType,
             URIRef("{}A_{}".format(brdfat, activity_type_dict_index[activity_type_index_dest]))
         ))
         g.add((
@@ -297,7 +297,7 @@ def generate_ystafdb_metadata_uris(output_base_dir):
             bont.hasTemporalExtent,
             URIRef(brdftime[times_dict[reference_timeframe_id].replace("-", "_")])
         ))
-        g.add((activity_output, bont.location, URIRef("{}L_{}".format(bloc, reference_space_id))))
+        g.add((activity_output, bont.hasLocation, URIRef("{}L_{}".format(bloc, reference_space_id))))
         activityCounter += 1
 
         # Balanceable Property
@@ -318,12 +318,12 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         # Here we create the Flow
         flow = URIRef("{}#F_{}".format(ystafdb_flow_uri, flowCounter))
         g.add((flow, RDF.type, URIRef(bont.Flow)))
-        g.add((flow, bont.objectType, URIRef("{}C_{}".format(brdffo, flow_object_dict[flow_object_name]))))
+        g.add((flow, bont.hasObjectType, URIRef("{}C_{}".format(brdffo, flow_object_dict[flow_object_name]))))
         g.add((flow, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))
         g.add((flow, bont.hasBalanceableProperty, balance))
         g.add((flow, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
-        g.add((flow, bont.inputOf, activity_input))
-        g.add((flow, bont.outputOf, activity_output))
+        g.add((flow, bont.isInputOf, activity_input))
+        g.add((flow, bont.isOutputOf, activity_output))
         flowCounter += 1
 
         # Provenance Information

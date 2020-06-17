@@ -35,7 +35,7 @@ def package_files(directory):
 
 setup(
     name='ystafdb',
-    version="0.1",
+    version="0.4",
     packages=packages,
     author="Emil Riis Hansen",
     author_email="emilrh@cs.aau.dk",

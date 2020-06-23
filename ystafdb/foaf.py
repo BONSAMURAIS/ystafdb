@@ -13,7 +13,7 @@ def generate_foaf_uris(output_base_dir):
     output_base_dir = Path(output_base_dir)
 
     org = Namespace("https://www.w3.org/TR/vocab-org/")
-    prov = Namespace("http://www.w3.org/ns/prov/ystafdb#")
+    prov = Namespace("http://www.w3.org/ns/prov#")
     purl = Namespace("http://purl.org/dc/dcmitype/")
     bfoaf = Namespace("http://rdf.bonsai.uno/foaf/ystafdb#")
     dtype = Namespace("http://purl.org/dc/dcmitype/")

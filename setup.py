@@ -51,6 +51,8 @@ setup(
     install_requires=[
         'appdirs',
         'docopt',
+        'rdflib',
+        'pandas'
     ],
     url="your_url_here",
     long_description_content_type='text/markdown',

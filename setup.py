@@ -40,7 +40,7 @@ setup(
     author="Emil Riis Hansen",
     author_email="emilrh@cs.aau.dk",
     license=open('LICENSE').read(),
-    package_data={'ystafdb': package_files(os.path.join('ystafdb', 'data'))},
+    #package_data={'ystafdb': package_files(os.path.join('ystafdb', 'data'))},
     # Only if you have non-python data (CSV, etc.). Might need to change the directory name as well.
     # package_data={'your_name_here': package_files(os.path.join('your_library_name', 'data'))},
     entry_points = {
@@ -69,6 +69,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Scientific/Engineering :: Visualization',

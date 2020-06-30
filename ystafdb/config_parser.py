@@ -1,5 +1,6 @@
+import os
 import json
-
+from pathlib import Path
 
 def get_config_data():
     providers = []
@@ -7,7 +8,10 @@ def get_config_data():
     providersRequiredFields = set()
     datasetsRequiredFields = set()
 
-    with open('ystafdb/data/config.json') as json_file:
+    if not os.path.exists(Path("config.json")):
+        exit("No config.json file")
+
+    with open('config.json') as json_file:
         data = json.load(json_file)
         for provider in data['providers']:
             providers.append(provider)
@@ -70,7 +74,10 @@ def get_config_data():
 
 
 def get_repo_name():
-    with open('ystafdb/data/config.json') as json_file:
+    if not os.path.exists(Path("config.json")):
+        exit("No config.json file")
+
+    with open('config.json') as json_file:
         data = json.load(json_file)
         git_repo_name = data["git_repo_name"]
 

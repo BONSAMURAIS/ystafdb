@@ -90,6 +90,7 @@ def generate_generic_graph(
     title,
     description,
     author,
+    format,
     provider=None,
     dataset=None,
     custom_binds=None
@@ -186,4 +187,4 @@ def generate_generic_graph(
     for subdir in directory_structure:
         output_dir = output_dir / subdir
 
-    write_graph(output_dir, g)
+    write_graph(output_dir, g, format)

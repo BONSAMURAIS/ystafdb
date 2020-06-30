@@ -9,11 +9,11 @@ def create_dir(dirpath):
     return dirpath
 
 
-def write_graph(dirpath, graph):
+def write_graph(dirpath, graph, format):
     """Write ``rdflib.Graph`` "graph" to ``pathlib.Path`` "dirpath".
 
     Doesn't return anything."""
     dirpath = Path(dirpath)
     create_dir(dirpath)
-    with open(dirpath / (dirpath.parts[-1] + ".ttl"), "wb") as f:
-        graph.serialize(f, format="ttl", encoding="utf-8")
+    with open(dirpath / (dirpath.parts[-1] + ".{}".format(format)), "wb") as f:
+        graph.serialize(f, format=format, encoding="utf-8")

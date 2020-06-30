@@ -1,6 +1,10 @@
 import os
+import sys
 import json
 from pathlib import Path
+
+config_file = "config.json"
+
 
 def get_config_data():
     providers = []
@@ -8,10 +12,11 @@ def get_config_data():
     providersRequiredFields = set()
     datasetsRequiredFields = set()
 
-    if not os.path.exists(Path("config.json")):
-        exit("No config.json file")
+    if not os.path.exists(Path(config_file)):
+        print("No {} file".format(config_file))
+        sys.exit(1)
 
-    with open('config.json') as json_file:
+    with open(config_file) as json_file:
         data = json.load(json_file)
         for provider in data['providers']:
             providers.append(provider)
@@ -74,10 +79,11 @@ def get_config_data():
 
 
 def get_repo_name():
-    if not os.path.exists(Path("config.json")):
-        exit("No config.json file")
+    if not os.path.exists(Path(config_file)):
+        print("No {} file".format(config_file))
+        sys.exit(1)
 
-    with open('config.json') as json_file:
+    with open(config_file) as json_file:
         data = json.load(json_file)
         git_repo_name = data["git_repo_name"]
 

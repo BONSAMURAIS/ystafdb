@@ -12,12 +12,14 @@ import csv
 import re
 import pkg_resources
 import pandas
+import sys
 import os
 
 
 def file_exists(indir, file):
     if not os.path.exists(Path(indir, file)):
-        exit("Please add file {} to directory {}".format(file, indir))
+        print("Please add file {} to directory {}".format(file, indir))
+        sys.exit(1)
 
 
 def generate_ystafdb_metadata_uris(args):
@@ -32,7 +34,8 @@ def generate_ystafdb_metadata_uris(args):
     prov_graph = add_prov_meta_information(prov_graph)
 
     if not os.path.exists(input_base_dir):
-        exit("Please add ystafdb csv data folder, and use argument -i <indir> from the cli to point at the folder")
+        print("Please add ystafdb csv data folder, and use argument -i <indir> from the cli to point at the folder")
+        sys.exit(1)
 
 
     # Index of Super Dataset
@@ -40,8 +43,9 @@ def generate_ystafdb_metadata_uris(args):
     dataset_counter = 0
 
     # publication Data
-    file_exists(input_base_dir, "publications.csv")
-    file_path = os.path.join(input_base_dir, "publications.csv")
+    publication_file = "publications.csv"
+    file_exists(input_base_dir, publication_file)
+    file_path = os.path.join(input_base_dir, publication_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     publications = pandas.read_csv(
         file_handler,
@@ -83,8 +87,9 @@ def generate_ystafdb_metadata_uris(args):
     # ------------------------- Locations -----------------------------------
 
     # Locations
-    file_exists(input_base_dir, "reference_spaces.csv")
-    file_path = os.path.join(input_base_dir, "reference_spaces.csv")
+    location_file = "reference_spaces.csv"
+    file_exists(input_base_dir, location_file)
+    file_path = os.path.join(input_base_dir, location_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     locations = pandas.read_csv(
         file_handler,
@@ -118,8 +123,9 @@ def generate_ystafdb_metadata_uris(args):
 
     # Activity Types
     # Aggregate Subsystems
-    file_exists(input_base_dir, "aggregate_subsystem_modules.csv")
-    file_path = os.path.join(input_base_dir, "aggregate_subsystem_modules.csv")
+    activity_file = "aggregate_subsystem_modules.csv"
+    file_exists(input_base_dir, activity_file)
+    file_path = os.path.join(input_base_dir, activity_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     agg_subsystems = pandas.read_csv(
         file_handler,
@@ -127,8 +133,9 @@ def generate_ystafdb_metadata_uris(args):
     )
 
     # Subsystems
-    file_exists(input_base_dir, "subsystems.csv")
-    file_path = os.path.join(input_base_dir, "subsystems.csv")
+    subsystem_file = "subsystems.csv"
+    file_exists(input_base_dir, subsystem_file)
+    file_path = os.path.join(input_base_dir, subsystem_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     subsystems = pandas.read_csv(
         file_handler,
@@ -153,8 +160,9 @@ def generate_ystafdb_metadata_uris(args):
     # These are a combination of Reference_material and material_name, therefor
     # They can only be create when extracting flows, to omit instantiating combinations
     # Which makes no sense
-    file_exists(input_base_dir, "reference_materials.csv")
-    file_path = os.path.join(input_base_dir, "reference_materials.csv")
+    reference_mat_file = "reference_materials.csv"
+    file_exists(input_base_dir, reference_mat_file)
+    file_path = os.path.join(input_base_dir, reference_mat_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     reference_materials = pandas.read_csv(
         file_handler,
@@ -162,8 +170,9 @@ def generate_ystafdb_metadata_uris(args):
     )
 
     # Material Names
-    file_exists(input_base_dir, "material_names.csv")
-    file_path = os.path.join(input_base_dir, "material_names.csv")
+    mat_name_file = "material_names.csv"
+    file_exists(input_base_dir, mat_name_file)
+    file_path = os.path.join(input_base_dir, mat_name_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     materials = pandas.read_csv(
         file_handler,
@@ -188,8 +197,9 @@ def generate_ystafdb_metadata_uris(args):
     # ---------------------------- Reference Times ---------------------------------------
 
     # Extract reference times for later usage
-    file_exists(input_base_dir, "reference_timeframes.csv")
-    file_path = os.path.join(input_base_dir, "reference_timeframes.csv")
+    times_file = "reference_timeframes.csv"
+    file_exists(input_base_dir, times_file)
+    file_path = os.path.join(input_base_dir, times_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     times = pandas.read_csv(
         file_handler,
@@ -201,8 +211,9 @@ def generate_ystafdb_metadata_uris(args):
     # ----------------------------- Flows ----------------------------------
 
     "Extract all flow from the file, for each flow find which data is needed from other files"
-    file_exists(input_base_dir, "flows.csv")
-    file_path = os.path.join(input_base_dir, "flows.csv")
+    flows_file = "flows.csv"
+    file_exists(input_base_dir, flows_file)
+    file_path = os.path.join(input_base_dir, flows_file)
     file_handler = pkg_resources.resource_stream(__name__, file_path)
     utf8_reader = codecs.getreader("utf-8")
     c = csv.reader(utf8_reader(file_handler))

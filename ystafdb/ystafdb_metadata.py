@@ -1,4 +1,3 @@
-from . import data_dir
 from .filesystem import write_graph
 from .graph_common import add_common_elements, generate_generic_graph
 from .provenance_uris import get_empty_prov_graph, add_prov_meta_information
@@ -7,10 +6,8 @@ from pathlib import Path
 from rdflib import Graph, Literal, RDF, URIRef, XSD
 from rdflib.namespace import RDFS, DC
 from rdflib import Namespace
-import codecs
 import csv
 import re
-import pkg_resources
 import pandas
 import sys
 import os
@@ -37,7 +34,6 @@ def generate_ystafdb_metadata_uris(args):
         print("Please add ystafdb csv data folder, and use argument -i <indir> from the cli to point at the folder")
         sys.exit(1)
 
-
     # Index of Super Dataset
     ystafdb_id = 0
     dataset_counter = 0
@@ -46,11 +42,10 @@ def generate_ystafdb_metadata_uris(args):
     publication_file = "publications.csv"
     file_exists(input_base_dir, publication_file)
     file_path = os.path.join(input_base_dir, publication_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     publications = pandas.read_csv(
-        file_handler,
-        header=0,
-    )
+            file_path,
+            header=0,
+        )
 
     bprov_uri = "http://rdf.bonsai.uno/prov/ystafdb"
     bprov = Namespace("{}#".format(bprov_uri))
@@ -90,9 +85,8 @@ def generate_ystafdb_metadata_uris(args):
     location_file = "reference_spaces.csv"
     file_exists(input_base_dir, location_file)
     file_path = os.path.join(input_base_dir, location_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     locations = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -126,9 +120,8 @@ def generate_ystafdb_metadata_uris(args):
     activity_file = "aggregate_subsystem_modules.csv"
     file_exists(input_base_dir, activity_file)
     file_path = os.path.join(input_base_dir, activity_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     agg_subsystems = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -136,9 +129,8 @@ def generate_ystafdb_metadata_uris(args):
     subsystem_file = "subsystems.csv"
     file_exists(input_base_dir, subsystem_file)
     file_path = os.path.join(input_base_dir, subsystem_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     subsystems = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -163,9 +155,8 @@ def generate_ystafdb_metadata_uris(args):
     reference_mat_file = "reference_materials.csv"
     file_exists(input_base_dir, reference_mat_file)
     file_path = os.path.join(input_base_dir, reference_mat_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     reference_materials = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -173,9 +164,8 @@ def generate_ystafdb_metadata_uris(args):
     mat_name_file = "material_names.csv"
     file_exists(input_base_dir, mat_name_file)
     file_path = os.path.join(input_base_dir, mat_name_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     materials = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -200,9 +190,8 @@ def generate_ystafdb_metadata_uris(args):
     times_file = "reference_timeframes.csv"
     file_exists(input_base_dir, times_file)
     file_path = os.path.join(input_base_dir, times_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
     times = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -214,20 +203,19 @@ def generate_ystafdb_metadata_uris(args):
     flows_file = "flows.csv"
     file_exists(input_base_dir, flows_file)
     file_path = os.path.join(input_base_dir, flows_file)
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
-    utf8_reader = codecs.getreader("utf-8")
-    c = csv.reader(utf8_reader(file_handler))
-    data_rows = []
-    print("Extracting flows from YSTAFDB")
-    for i, line in enumerate(c):
-        if i == 0:
-            header = line
-            continue
-        dict1 = {}
-        # Multiple delimiter characters ; and , are present, along with quotes.
-        # Pandas is not good in this situation, therefor this conversion
-        dict1.update({key: value for key, value in zip(header, re.split(',', ",".join(line)))})
-        data_rows.append(dict1)
+    with open(file_path) as file_handler:
+        c = csv.reader(file_handler)
+        data_rows = []
+        print("Extracting flows from YSTAFDB")
+        for i, line in enumerate(c):
+            if i == 0:
+                header = line
+                continue
+            dict1 = {}
+            # Multiple delimiter characters ; and , are present, along with quotes.
+            # Pandas is not good in this situation, therefor this conversion
+            dict1.update({key: value for key, value in zip(header, re.split(',', ",".join(line)))})
+            data_rows.append(dict1)
     print("Done Extracting flows from YSTAFDB")
 
     # Create graph for flows with common elements

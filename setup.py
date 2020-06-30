@@ -40,7 +40,7 @@ setup(
     author="Emil Riis Hansen",
     author_email="emilrh@cs.aau.dk",
     license=open('LICENSE').read(),
-    #package_data={'ystafdb': package_files(os.path.join('ystafdb', 'data'))},
+    package_data={'ystafdb': package_files(os.path.join('ystafdb', 'data'))},
     # Only if you have non-python data (CSV, etc.). Might need to change the directory name as well.
     # package_data={'your_name_here': package_files(os.path.join('your_library_name', 'data'))},
     entry_points = {
@@ -52,7 +52,7 @@ setup(
         'appdirs',
         'docopt',
     ],
-    url="your_url_here",
+    url="https://github.com/BONSAMURAIS/ystafdb/",
     long_description_content_type='text/markdown',
     long_description=open('README.md').read(),
     description='',

@@ -35,7 +35,7 @@ def package_files(directory):
 
 setup(
     name='ystafdb',
-    version="0.4",
+    version="0.5",
     packages=packages,
     author="Emil Riis Hansen",
     author_email="emilrh@cs.aau.dk",
@@ -51,6 +51,8 @@ setup(
     install_requires=[
         'appdirs',
         'docopt',
+        'rdflib',
+        'pandas'
     ],
     url="https://github.com/BONSAMURAIS/ystafdb/",
     long_description_content_type='text/markdown',

@@ -230,7 +230,7 @@ def generate_ystafdb_metadata_uris(args):
         dataset="YSTAFDB"
     )
 
-    prov = Namespace("http://www.w3.org/ns/prov/ystafdb#")
+    prov = Namespace("http://www.w3.org/ns/prov#")
     bont = Namespace("http://ontology.bonsai.uno/core#")
     brdffo = Namespace("http://rdf.bonsai.uno/flowobject/ystafdb#")
     om2 = Namespace("http://www.ontology-of-units-of-measure.org/resource/om-2/")

@@ -41,6 +41,24 @@ $ python setup.py install
 
 You must first download the Base Data, and then use `ystafdb-cli` to produce the ttl/nt/xml files.
 
+For the full syntax, invoke `ystafdb-cli -h`:
+
+```
+usage: ystafdb-cli [-h] [-i INDIR] [-o OUTDIR] [-f {nt,ttl,xml}]
+
+Extract rdf from ystafdb
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INDIR, --input INDIR
+                        path to ystafdb csv files
+  -o OUTDIR, --output OUTDIR
+                        Output directory
+  -f {nt,ttl,xml}, --format {nt,ttl,xml}
+                        The output format
+
+```
+
 ### Download Base Data
 
 The data can be downloaded [here](https://www.sciencebase.gov/catalog/file/get/5b9a7c28e4b0d966b485d915?f=__disk__0f%2F58%2Fa7%2F0f58a74db669ee5418f36a698bc85781e867e0ab) as a zip file.
@@ -69,14 +87,15 @@ unzip -d ystafdb-input YSTAFDB_CSV_files.zip
 If the package is correctly installed, you can use the command line tool `ystafdb-cli` to produce the rdfs as follows:
 
 ```
-$ ystafdb-cli -i <inputdir> -o <outputdir>
+$ ystafdb-cli -i <indir> -o <outdir> -f [ttl|nt|xml]
 ```
 
 
 Where:
-+ `<inputdir>` is the location of the ystafdb csv files, and 
-+ `<outputdir>` is the directory where the output triples graphs will be placed. This is optional,
++ `<indir>` is the location of the ystafdb csv files, and 
++ `<outdir>` is the directory where the output triples graphs will be placed. This is optional,
   if not supplied, the output directory will be `output`
++ `-f` is the format of the files to generate (`ttl`, `nt` or `xml`). This is optional, if not supplied, it is `ttl`.
 
 In the Linux terminal example from above, this would be done with:
 

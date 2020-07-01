@@ -1,4 +1,16 @@
+import os
+import sys
 import json
+from pathlib import Path
+
+
+try:
+        import importlib.resources as pkg_resources
+except ImportError:
+        # Try backported to PY<37 `importlib_resources`.
+            import importlib_resources as pkg_resources
+
+config_file = "config.json"
 
 
 def get_config_data():
@@ -7,7 +19,7 @@ def get_config_data():
     providersRequiredFields = set()
     datasetsRequiredFields = set()
 
-    with open('ystafdb/data/config.json') as json_file:
+    with pkg_resources.open_text("ystafdb.data", config_file) as json_file:
         data = json.load(json_file)
         for provider in data['providers']:
             providers.append(provider)
@@ -70,7 +82,7 @@ def get_config_data():
 
 
 def get_repo_name():
-    with open('ystafdb/data/config.json') as json_file:
+    with pkg_resources.open_text("ystafdb.data", config_file) as json_file:
         data = json.load(json_file)
         git_repo_name = data["git_repo_name"]
 

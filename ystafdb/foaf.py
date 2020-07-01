@@ -7,10 +7,10 @@ from . import __version__
 from .config_parser import get_config_data
 
 
-def generate_foaf_uris(output_base_dir):
+def generate_foaf_uris(args):
     """Note the URIs needed for units. They all come from the Ontology of Units
     of Measure."""
-    output_base_dir = Path(output_base_dir)
+    output_base_dir = Path(args.outdir)
 
     org = Namespace("https://www.w3.org/TR/vocab-org/")
     prov = Namespace("http://www.w3.org/ns/prov#")
@@ -77,4 +77,4 @@ def generate_foaf_uris(output_base_dir):
         )
         g.add((providerUri, FOAF.homepage, URIRef(provider['homepage'])))
 
-    write_graph(output_base_dir / "foaf" / "ystafdb", g)
+    write_graph(output_base_dir / "foaf" / "ystafdb", g, args.format)

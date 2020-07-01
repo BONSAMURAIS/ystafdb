@@ -1,4 +1,3 @@
-from . import data_dir
 from .filesystem import write_graph
 from .graph_common import add_common_elements, generate_generic_graph
 from .provenance_uris import get_empty_prov_graph, add_prov_meta_information
@@ -7,16 +6,22 @@ from pathlib import Path
 from rdflib import Graph, Literal, RDF, URIRef, XSD
 from rdflib.namespace import RDFS, DC
 from rdflib import Namespace
-import codecs
 import csv
 import re
-import pkg_resources
 import pandas
+import sys
 import os
 
 
-def generate_ystafdb_metadata_uris(output_base_dir):
-    output_base_dir = Path(output_base_dir)
+def file_exists(indir, file):
+    if not os.path.exists(Path(indir, file)):
+        print("Please add file {} to directory {}".format(file, indir))
+        sys.exit(1)
+
+
+def generate_ystafdb_metadata_uris(args):
+    output_base_dir = Path(args.outdir)
+    input_base_dir = Path(args.indir)
 
     # ----------------- Provenance -------------------------
 
@@ -25,17 +30,22 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     prov_graph = get_empty_prov_graph()
     prov_graph = add_prov_meta_information(prov_graph)
 
+    if not os.path.exists(input_base_dir):
+        print("Please add ystafdb csv data folder, and use argument -i <indir> from the cli to point at the folder")
+        sys.exit(1)
+
     # Index of Super Dataset
     ystafdb_id = 0
     dataset_counter = 0
 
     # publication Data
-    file_path = os.path.join(data_dir, "publications.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    publication_file = "publications.csv"
+    file_exists(input_base_dir, publication_file)
+    file_path = os.path.join(input_base_dir, publication_file)
     publications = pandas.read_csv(
-        file_handler,
-        header=0,
-    )
+            file_path,
+            header=0,
+        )
 
     bprov_uri = "http://rdf.bonsai.uno/prov/ystafdb"
     bprov = Namespace("{}#".format(bprov_uri))
@@ -72,10 +82,11 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     # ------------------------- Locations -----------------------------------
 
     # Locations
-    file_path = os.path.join(data_dir, "reference_spaces.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    location_file = "reference_spaces.csv"
+    file_exists(input_base_dir, location_file)
+    file_path = os.path.join(input_base_dir, location_file)
     locations = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -100,24 +111,26 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         g.add((node, RDFS.label, Literal(label)))
         g.add((URIRef(ystafdb_location_uri), NS.prov.hadMember, node))
 
-    write_graph(output_base_dir / "location" / "ystafdb", g)
+    write_graph(output_base_dir / "location" / "ystafdb", g, args.format)
 
     # -------------------------- Activity Types ---------------------------------
 
     # Activity Types
     # Aggregate Subsystems
-    file_path = os.path.join(data_dir, "aggregate_subsystem_modules.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    activity_file = "aggregate_subsystem_modules.csv"
+    file_exists(input_base_dir, activity_file)
+    file_path = os.path.join(input_base_dir, activity_file)
     agg_subsystems = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
     # Subsystems
-    file_path = os.path.join(data_dir, "subsystems.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    subsystem_file = "subsystems.csv"
+    file_exists(input_base_dir, subsystem_file)
+    file_path = os.path.join(input_base_dir, subsystem_file)
     subsystems = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -129,7 +142,6 @@ def generate_ystafdb_metadata_uris(output_base_dir):
             process_combinations.append((agg_id, sub_id))
 
     # Create dictionaries for future usage
-    activity_keep_set = set()
     agg_sub_dict = {i: x for i, x in zip(agg_subsystems["aggregate_subsystem_module_id"], agg_subsystems["aggregate_subsystem_module"])}
     sub_dict = {i: x for i, x in zip(subsystems["subsystem_id"], subsystems["subsystem"])}
     process_combinations = list(set(process_combinations))
@@ -140,18 +152,20 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     # These are a combination of Reference_material and material_name, therefor
     # They can only be create when extracting flows, to omit instantiating combinations
     # Which makes no sense
-    file_path = os.path.join(data_dir, "reference_materials.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    reference_mat_file = "reference_materials.csv"
+    file_exists(input_base_dir, reference_mat_file)
+    file_path = os.path.join(input_base_dir, reference_mat_file)
     reference_materials = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
     # Material Names
-    file_path = os.path.join(data_dir, "material_names.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    mat_name_file = "material_names.csv"
+    file_exists(input_base_dir, mat_name_file)
+    file_path = os.path.join(input_base_dir, mat_name_file)
     materials = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -173,10 +187,11 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     # ---------------------------- Reference Times ---------------------------------------
 
     # Extract reference times for later usage
-    file_path = os.path.join(data_dir, "reference_timeframes.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
+    times_file = "reference_timeframes.csv"
+    file_exists(input_base_dir, times_file)
+    file_path = os.path.join(input_base_dir, times_file)
     times = pandas.read_csv(
-        file_handler,
+        file_path,
         header=0,
     )
 
@@ -185,21 +200,22 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     # ----------------------------- Flows ----------------------------------
 
     "Extract all flow from the file, for each flow find which data is needed from other files"
-    file_path = os.path.join(data_dir, "flows.csv")
-    file_handler = pkg_resources.resource_stream(__name__, file_path)
-    utf8_reader = codecs.getreader("utf-8")
-    c = csv.reader(utf8_reader(file_handler))
-    data_rows = []
-    print("Extracting flows from YSTAFDB")
-    for i, line in enumerate(c):
-        if i == 0:
-            header = line
-            continue
-        dict1 = {}
-        # Multiple delimiter characters ; and , are present, along with quotes.
-        # Pandas is not good in this situation, therefor this conversion
-        dict1.update({key: value for key, value in zip(header, re.split(',', ",".join(line)))})
-        data_rows.append(dict1)
+    flows_file = "flows.csv"
+    file_exists(input_base_dir, flows_file)
+    file_path = os.path.join(input_base_dir, flows_file)
+    with open(file_path) as file_handler:
+        c = csv.reader(file_handler)
+        data_rows = []
+        print("Extracting flows from YSTAFDB")
+        for i, line in enumerate(c):
+            if i == 0:
+                header = line
+                continue
+            dict1 = {}
+            # Multiple delimiter characters ; and , are present, along with quotes.
+            # Pandas is not good in this situation, therefor this conversion
+            dict1.update({key: value for key, value in zip(header, re.split(',', ",".join(line)))})
+            data_rows.append(dict1)
     print("Done Extracting flows from YSTAFDB")
 
     # Create graph for flows with common elements
@@ -340,8 +356,8 @@ def generate_ystafdb_metadata_uris(output_base_dir):
     # Write Flows and Provenance graphs to file
     print("Extracted {} flows successfully".format(x))
     print("Encountered {} flows, which could not be extracted".format(error_counter))
-    write_graph(output_base_dir / "prov" / "ystafdb", prov_graph)
-    write_graph(output_base_dir / "flow" / "ystafdb/huse", g)
+    write_graph(output_base_dir / "prov" / "ystafdb", prov_graph, args.format)
+    write_graph(output_base_dir / "flow" / "ystafdb/huse", g, args.format)
 
     # Write Flow Objects graph to file
     flow_object_list = [[x, "C_{}".format(y)] for x, y in zip(flow_object_dict.keys(), flow_object_dict.values())]
@@ -354,7 +370,8 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         description="FlowObject instances needed for BONSAI modelling of YSTAFDB version 1.0",
         author="BONSAI team",
         provider="Yale University",
-        dataset="YSTAFDB"
+        dataset="YSTAFDB",
+        format=args.format
     )
 
     # Write Activity Types graph to file
@@ -369,5 +386,6 @@ def generate_ystafdb_metadata_uris(output_base_dir):
         description="ActivityType instances needed for BONSAI modelling of YSTAFDB version 1.0",
         author="BONSAI team",
         provider="Yale University",
-        dataset="YSTAFDB"
+        dataset="YSTAFDB",
+        format=args.format
     )

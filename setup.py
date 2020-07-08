@@ -35,7 +35,7 @@ def package_files(directory):
 
 setup(
     name="ystafdb",
-    version="0.5.1",
+    version="0.5.2",
     packages=packages,
     description="CLI tool to parse YSTAFDB and produce ttl/nt/xml.",
     long_description=open("README.md").read(),

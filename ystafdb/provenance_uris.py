@@ -12,6 +12,7 @@ def get_empty_prov_graph():
     prov = Namespace("http://www.w3.org/ns/prov#")
     purl = Namespace("http://purl.org/dc/dcmitype/")
     bfoaf = Namespace("http://rdf.bonsai.uno/foaf/ystafdb#")
+    bonsaifoaf = Namespace("http://rdf.bonsai.uno/foaf/bonsai#")
     bprov = Namespace("{}#".format(bprov_uri))
     dtype = Namespace("http://purl.org/dc/dcmitype/")
     vann = Namespace("http://purl.org/vocab/vann/")
@@ -27,6 +28,7 @@ def get_empty_prov_graph():
     g.bind("rdfs", RDFS)
     g.bind("prov", prov)
     g.bind("bfoaf", bfoaf)
+    g.bind("bonsaifoaf", bonsaifoaf)
     g.bind("bprov", bprov)
     g.bind("vann", vann)
     g.bind("vann", vann)
@@ -40,6 +42,7 @@ def add_prov_meta_information(g):
     prov = Namespace("http://www.w3.org/ns/prov#")
     purl = Namespace("http://purl.org/dc/dcmitype/")
     bfoaf = Namespace("http://rdf.bonsai.uno/foaf/ystafdb#")
+    bonsaifoaf = Namespace("http://rdf.bonsai.uno/foaf/bonsai#")
     bprov = Namespace("{}#".format(bprov_uri))
     dtype = Namespace("http://purl.org/dc/dcmitype/")
     vann = Namespace("http://purl.org/vocab/vann/")
@@ -48,13 +51,12 @@ def add_prov_meta_information(g):
     node = URIRef(bprov_uri)
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     g.add((node, RDF.type, dtype.Dataset))
-    g.add((node, DC.contributor, Literal("BONSAI team")))
     g.add((node, DC.description, Literal("Provenance information about datasets and data extraction activities")))
     g.add((node, vann.preferredNamespaceUri, URIRef(bprov)))
-    g.add((node, DC.creator, bfoaf.bonsai))
+    g.add((node, DC.creator, bonsaifoaf.bonsai))
     g.add((node, DC.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
     g.add((node, DC.modified, Literal(today, datatype=XSD.date)))
-    g.add((node, DC.publisher, Literal("bonsai.uno")))
+    g.add((node, DC.publisher, bonsaifoaf.bonsai))
     g.add((node, DC.title, Literal("Provenance information")))
     g.add((node, OWL.versionInfo, Literal(__version__)))
 
@@ -79,6 +81,7 @@ def add_prov_meta_information(g):
         g.add((datasetUri, prov.wasAttributedTo, URIRef(bfoaf["provider_{}".format(dataset['id'])])))
         g.add((datasetUri, DC.term("rights"), Literal(dataset['rights'])))
         g.add((datasetUri, prov.hadPrimarySource, URIRef(dataset['download_uri'])))
+        g.add((node, prov.hadMember, datasetUri))
 
     # dataExtractionActivities
     # For each dataset, we need a new extractionActivity, this is to keep perfect lineage of data origin
@@ -103,11 +106,25 @@ def add_prov_meta_information(g):
         g.add((arborist_uri, prov.hadPlan, URIRef(bprov.extractionScript)))
         g.add((arborist_uri, prov.wasAssociatedWith, URIRef(bfoaf.bonsai)))
         g.add((arborist_uri, OWL.versionInfo, Literal(__version__)))
+        g.add((node, prov.hadMember, arborist_uri))
 
     plan = URIRef(bprov.extractionScript)
     g.add((plan, RDF.type, prov.Plan))
     g.add((plan, RDF.type, prov.Entity))
     g.add((plan, RDFS.label, Literal("Entity representing the latest version of the YSTAFDB Script")))
     g.add((plan, prov.hadPrimarySource, URIRef("https://github.com/BONSAMURAIS/{}/tree/v{}".format(get_repo_name(), __version__.replace(".", "_")))))
+
+    # Provenance
+    g.add((node, RDF.type, prov.Collection))
+    g.add((node, prov.wasAttributedTo, bonsaifoaf.bonsai))
+    g.add((node, prov.wasGeneratedBy, bprov["dataExtractionActivity_{}".format(__version__.replace(".", "_"))]))
+    g.add((node, prov.generatedAtTime, Literal(today, datatype=XSD.date)))
+    g.add(
+        (
+            node,
+            URIRef("http://creativecommons.org/ns#license"),
+            URIRef("http://creativecommons.org/licenses/by/3.0/"),
+        )
+    )
 
     return g

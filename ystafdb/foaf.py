@@ -16,6 +16,8 @@ def generate_foaf_uris(args):
     prov = Namespace("http://www.w3.org/ns/prov#")
     purl = Namespace("http://purl.org/dc/dcmitype/")
     bfoaf = Namespace("http://rdf.bonsai.uno/foaf/ystafdb#")
+    bonsaifoaf = Namespace("http://rdf.bonsai.uno/foaf/bonsai#")
+    bprov = Namespace("http://rdf.bonsai.uno/prov/ystafdb#")
     dtype = Namespace("http://purl.org/dc/dcmitype/")
     vann = Namespace("http://purl.org/vocab/vann/")
 
@@ -29,37 +31,21 @@ def generate_foaf_uris(args):
     g.bind("owl", OWL)
     g.bind("prov", prov)
     g.bind("bfoaf", bfoaf)
+    g.bind("bonsaifoaf", bonsaifoaf)
+    g.bind("bprov", bprov)
 
     node = URIRef("http://rdf.bonsai.uno/foaf/ystafdb")
 
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     g.add((node, RDF.type, dtype.Dataset))
-    g.add((node, DC.creator, bfoaf.bonsai))
-    g.add((node, DC.contributor, Literal("BONSAI team")))
+    g.add((node, DC.creator, bonsaifoaf.bonsai))
     g.add((node, DC.description, Literal("Instances of Organizations")))
     g.add((node, vann.preferredNamespaceUri, URIRef(bfoaf)))
     g.add((node, DC.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
     g.add((node, DC.modified, Literal(today, datatype=XSD.date)))
-    g.add((node, DC.publisher, Literal("bonsai.uno")))
+    g.add((node, DC.publisher, bonsaifoaf.bonsai))
     g.add((node, DC.title, Literal("Organizations")))
     g.add((node, OWL.versionInfo, Literal(__version__)))
-
-    node = URIRef(bfoaf.bonsai)
-    g.add((node, RDF.type, org.Organization))
-    g.add((node, RDF.type, prov.Agent))
-    g.add(
-        (
-            node,
-            SKOS.prefLabel,
-            Literal(
-                "BONSAI – Big Open Network for Sustainability Assessment Information"
-            ),
-        )
-    )
-    g.add((node, FOAF.homepage, URIRef("https://bonsai.uno")))
-    g.add((node, FOAF.interest, URIRef("https://www.wikidata.org/wiki/Q131201")))
-    g.add((node, FOAF.interest, URIRef("https://www.wikidata.org/wiki/Q2323664")))
-    g.add((node, FOAF.interest, URIRef("https://www.wikidata.org/wiki/Q18692990")))
 
     # Dataset providers, comes from config.json file
     providers, _ = get_config_data()
@@ -76,5 +62,20 @@ def generate_foaf_uris(args):
             )
         )
         g.add((providerUri, FOAF.homepage, URIRef(provider['homepage'])))
+        g.add((node, prov.hadMember, providerUri))
+
+
+    # Provenance
+    g.add((node, RDF.type, prov.Collection))
+    g.add((node, prov.wasAttributedTo, bonsaifoaf.bonsai))
+    g.add((node, prov.wasGeneratedBy, bprov["dataExtractionActivity_{}".format(__version__.replace(".", "_"))]))
+    g.add((node, prov.generatedAtTime, Literal(today, datatype=XSD.date)))
+    g.add(
+        (
+            node,
+            URIRef("http://creativecommons.org/ns#license"),
+            URIRef("http://creativecommons.org/licenses/by/3.0/"),
+        )
+    )
 
     write_graph(output_base_dir / "foaf" / "ystafdb", g, args.format)

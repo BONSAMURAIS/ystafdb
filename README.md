@@ -129,5 +129,5 @@ output
 ```
 
 ## Contributing
-All contributions should be via pull request, do not edit this package directly! We actually use it for stuff.
+All contributions should be via pull request, do not edit this package directly!.
 

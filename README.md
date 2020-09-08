@@ -1,6 +1,6 @@
 # YSTAFDB
 
-YSTAFDB creates turtle files of the istances of data based on an ontology.
+YSTAFDB creates turtle files of the instances of data based on an ontology.
 The turtle files are needed for the BONSAI knowledge graph.
 
 The turtle files generated are stored in the BONSAI [rdf repository](https://github.com/BONSAMURAIS/rdf).
@@ -39,7 +39,7 @@ $ python setup.py install
 
 ## Usage
 
-You must first download the Base Data, and then use `ystafdb-cli` to produce the ttl/nt/xml files.
+First download the Base Data, and then use `ystafdb-cli` to produce the ttl/nt/xml files.
 
 For the full syntax, invoke `ystafdb-cli -h`:
 

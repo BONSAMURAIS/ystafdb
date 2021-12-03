@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2021-12-03
+### Changed
+- Use rdflib >= 6
+- Fixed #14 by correctly referencing DC/DCTERMS entries
+
 ## [0.5.3] - 2021-12-03
 ### Changed
 - Dependency to rdflib has been pinned to < 6 (see issue #14)

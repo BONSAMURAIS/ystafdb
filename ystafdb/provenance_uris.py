@@ -1,6 +1,6 @@
 from .filesystem import write_graph
 from rdflib import Graph, Literal, RDF, URIRef, Namespace
-from rdflib.namespace import FOAF, SKOS, DC, OWL, XSD, RDFS
+from rdflib.namespace import FOAF, SKOS, DC, OWL, XSD, RDFS, DCTERMS
 import datetime
 from . import __version__
 from pathlib import Path
@@ -24,6 +24,7 @@ def get_empty_prov_graph():
     g.bind("skos", SKOS)
     g.bind("foaf", FOAF)
     g.bind("dc", DC)
+    g.bind("dcterms", DCTERMS)
     g.bind("owl", OWL)
     g.bind("rdfs", RDFS)
     g.bind("prov", prov)
@@ -54,8 +55,8 @@ def add_prov_meta_information(g):
     g.add((node, DC.description, Literal("Provenance information about datasets and data extraction activities")))
     g.add((node, vann.preferredNamespaceUri, URIRef(bprov)))
     g.add((node, DC.creator, bonsaifoaf.bonsai))
-    g.add((node, DC.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
-    g.add((node, DC.modified, Literal(today, datatype=XSD.date)))
+    g.add((node, DCTERMS.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
+    g.add((node, DCTERMS.modified, Literal(today, datatype=XSD.date)))
     g.add((node, DC.publisher, bonsaifoaf.bonsai))
     g.add((node, DC.title, Literal("Provenance information")))
     g.add((node, OWL.versionInfo, Literal(__version__)))
@@ -76,10 +77,10 @@ def add_prov_meta_information(g):
             )
         )
         g.add((datasetUri, OWL.versionInfo, Literal(dataset['version'].replace('_', '.'))))
-        g.add((datasetUri, DC.term("license"), URIRef(dataset['license'])))
-        g.add((datasetUri, DC.term("date"), Literal(dataset['update_date'], datatype=XSD.date)))
+        g.add((datasetUri, DCTERMS.license, URIRef(dataset['license'])))
+        g.add((datasetUri, DC.date, Literal(dataset['update_date'], datatype=XSD.date)))
         g.add((datasetUri, prov.wasAttributedTo, URIRef(bfoaf["provider_{}".format(dataset['id'])])))
-        g.add((datasetUri, DC.term("rights"), Literal(dataset['rights'])))
+        g.add((datasetUri, DC.rights, Literal(dataset['rights'])))
         g.add((datasetUri, prov.hadPrimarySource, URIRef(dataset['download_uri'])))
         g.add((node, prov.hadMember, datasetUri))
 

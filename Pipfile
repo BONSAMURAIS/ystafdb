@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 docopt = "*"
 pandas = "==0.25.3"
-rdflib = "<6"
+rdflib = ">=6"
 xlrd = "*"
 pyxlsb = "*"
 importlib_resources = "*"

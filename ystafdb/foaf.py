@@ -1,7 +1,7 @@
 from .filesystem import write_graph
 from pathlib import Path
 from rdflib import Graph, Literal, RDF, URIRef, Namespace
-from rdflib.namespace import FOAF, SKOS, DC, OWL, XSD
+from rdflib.namespace import FOAF, SKOS, DC, OWL, XSD, DCTERMS
 import datetime
 from . import __version__
 from .config_parser import get_config_data
@@ -28,6 +28,7 @@ def generate_foaf_uris(args):
     g.bind("skos", SKOS)
     g.bind("foaf", FOAF)
     g.bind("dc", DC)
+    g.bind("dcterms", DCTERMS)
     g.bind("owl", OWL)
     g.bind("prov", prov)
     g.bind("bfoaf", bfoaf)
@@ -41,8 +42,8 @@ def generate_foaf_uris(args):
     g.add((node, DC.creator, bonsaifoaf.bonsai))
     g.add((node, DC.description, Literal("Instances of Organizations")))
     g.add((node, vann.preferredNamespaceUri, URIRef(bfoaf)))
-    g.add((node, DC.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
-    g.add((node, DC.modified, Literal(today, datatype=XSD.date)))
+    g.add((node, DCTERMS.license, URIRef("https://creativecommons.org/licenses/by/3.0/")))
+    g.add((node, DCTERMS.modified, Literal(today, datatype=XSD.date)))
     g.add((node, DC.publisher, bonsaifoaf.bonsai))
     g.add((node, DC.title, Literal("Organizations")))
     g.add((node, OWL.versionInfo, Literal(__version__)))

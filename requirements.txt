@@ -1,7 +1,7 @@
 appdirs
 docopt
+rdflib<6
 pandas
-rdflib
 xlrd
 pyxlsb
 

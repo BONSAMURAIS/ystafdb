@@ -35,7 +35,7 @@ def package_files(directory):
 
 setup(
     name="ystafdb",
-    version="0.5.3",
+    version="0.6.0",
     packages=packages,
     description="CLI tool to parse YSTAFDB and produce ttl/nt/xml.",
     long_description=open("README.md").read(),
@@ -46,7 +46,7 @@ setup(
     # Only if you have non-python data (CSV, etc.). Might need to change the directory name as well.
     # package_data={"your_name_here": package_files(os.path.join("your_library_name", "data"))},
     entry_points={"console_scripts": ["ystafdb-cli = ystafdb.bin.ystafdb:main",]},
-    install_requires=["appdirs", "docopt", "rdflib<6", "pandas", "xlrd", "pyxlsb"],
+    install_requires=["appdirs", "docopt", "rdflib>=6", "pandas", "xlrd", "pyxlsb"],
     url="https://github.com/BONSAMURAIS/ystafdb/",
     classifiers=[
         "Intended Audience :: End Users/Desktop",

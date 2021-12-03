@@ -1,7 +1,7 @@
 from .filesystem import write_graph
 from pathlib import Path
 from rdflib import Literal, RDF, URIRef, Namespace, Graph
-from rdflib.namespace import DC, RDFS, OWL, FOAF, XSD, SKOS
+from rdflib.namespace import DC, RDFS, OWL, FOAF, XSD, SKOS, DCTERMS
 from.config_parser import does_provider_dataset_combi_exist
 import datetime
 from . import __version__
@@ -41,6 +41,7 @@ def add_common_elements(graph, base_uri, title, description, author, provider=No
 
     graph.bind("bont", "http://ontology.bonsai.uno/core#")
     graph.bind("dc", DC)
+    graph.bind("dcterms", DCTERMS)
     graph.bind("foaf", FOAF)
     graph.bind("xsd", XSD)
     graph.bind("owl", OWL)
@@ -59,7 +60,7 @@ def add_common_elements(graph, base_uri, title, description, author, provider=No
     graph.add((node, NS.vann.preferredNamespaceUri, URIRef("{}#".format(base_uri))))
     graph.add((node, OWL.versionInfo, Literal(__version__)))
     today = datetime.datetime.now().strftime("%Y-%m-%d")
-    graph.add((node, DC.modified, Literal(today, datatype=XSD.date)))
+    graph.add((node, DCTERMS.modified, Literal(today, datatype=XSD.date)))
     graph.add((node, DC.publisher, bfoaf.bonsai))
     graph.add((node, DC.creator, bfoaf.bonsai))
 

@@ -239,7 +239,7 @@ def generate_ystafdb_metadata_uris(args):
     bloc = Namespace("http://rdf.bonsai.uno/location/ystafdb#")
 
     g.bind("bont", "http://ontology.bonsai.uno/core#")
-    g.bind("flow", "http://rdf.bonsai.uno/data/ystafdb/huse#")
+    g.bind("flow", "http://rdf.bonsai.uno/data/ystafdb/huse/")
     g.bind("schema", "http://schema.org/")
     g.bind("brdffo", "http://rdf.bonsai.uno/flowobject/ystafdb#")
     g.bind("om2", "http://www.ontology-of-units-of-measure.org/resource/om-2/")

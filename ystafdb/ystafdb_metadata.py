@@ -286,7 +286,7 @@ def generate_ystafdb_metadata_uris(args):
             continue
 
         # Here we create the two activities linking the flow
-        activity_input = URIRef("{}#A_{}".format(ystafdb_flow_uri, activityCounter))
+        activity_input = URIRef("{}/A_{}".format(ystafdb_flow_uri, activityCounter))
         g.add((activity_input, RDF.type, URIRef(bont.Activity)))
         g.add((
             activity_input,
@@ -301,7 +301,7 @@ def generate_ystafdb_metadata_uris(args):
         g.add((activity_input, bont.hasLocation, URIRef("{}L_{}".format(bloc, reference_space_id))))
         activityCounter += 1
 
-        activity_output = URIRef("{}#A_{}".format(ystafdb_flow_uri, activityCounter))
+        activity_output = URIRef("{}/A_{}".format(ystafdb_flow_uri, activityCounter))
         g.add((activity_output, RDF.type, URIRef(bont.Activity)))
         g.add((
             activity_output,
@@ -319,7 +319,7 @@ def generate_ystafdb_metadata_uris(args):
         # Balanceable Property
         # We omit becquerel
         if quantity_unit_id != 17:
-            balance = URIRef("{}#B_{}".format(ystafdb_flow_uri, balance_counter))
+            balance = URIRef("{}/B_{}".format(ystafdb_flow_uri, balance_counter))
             g.add((balance, RDF.type, URIRef(bont.BalanceableProperty)))
             g.add((balance, bont.hasBalanceablePropertyType, om2.DryMass))
             g.add((balance, om2.hasNumericalValue, Literal(quantity, datatype=XSD.float)))
@@ -332,7 +332,7 @@ def generate_ystafdb_metadata_uris(args):
             balance_counter += 1
 
         # Here we create the Flow
-        flow = URIRef("{}#F_{}".format(ystafdb_flow_uri, flowCounter))
+        flow = URIRef("{}/F_{}".format(ystafdb_flow_uri, flowCounter))
         g.add((flow, RDF.type, URIRef(bont.Flow)))
         g.add((flow, bont.hasObjectType, URIRef("{}C_{}".format(brdffo, flow_object_dict[flow_object_name]))))
         g.add((flow, om2.hasUnit, URIRef(om2[unit_dict[quantity_unit_id]])))

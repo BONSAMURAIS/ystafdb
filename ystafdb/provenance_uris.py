@@ -16,7 +16,7 @@ def get_empty_prov_graph():
     bprov = Namespace("{}#".format(bprov_uri))
     dtype = Namespace("http://purl.org/dc/dcmitype/")
     vann = Namespace("http://purl.org/vocab/vann/")
-    flow = "http://rdf.bonsai.uno/data/ystafdb/huse#"
+    flow = "http://rdf.bonsai.uno/data/ystafdb/huse/"
 
     g = Graph()
     g.bind("org", "https://www.w3.org/TR/vocab-org/")
